@@ -7,6 +7,7 @@ package com.scaminal.di
 import android.content.Context
 import androidx.room.Room
 import com.scaminal.data.AppDatabase
+import com.scaminal.data.dao.CommandShortcutDao
 import com.scaminal.data.dao.HostDao
 import dagger.Module
 import dagger.Provides
@@ -26,11 +27,18 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "scaminal.db"
-        ).build()
+        )
+            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .build()
     }
 
     @Provides
     fun provideHostDao(database: AppDatabase): HostDao {
         return database.hostDao()
+    }
+
+    @Provides
+    fun provideCommandShortcutDao(database: AppDatabase): CommandShortcutDao {
+        return database.commandShortcutDao()
     }
 }

@@ -127,6 +127,9 @@ class ScannerViewModel @Inject constructor(
     fun toggleFavorite(ip: String) {
         viewModelScope.launch {
             hostRepository.toggleFavorite(ip)
+            _hosts.value = _hosts.value.map { host ->
+                if (host.ipAddress == ip) host.copy(isFavorite = !host.isFavorite) else host
+            }
         }
     }
 

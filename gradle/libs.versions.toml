@@ -6,6 +6,7 @@ compose-bom = "2024.12.01"
 hilt = "2.53.1"
 room = "2.6.1"
 timber = "5.0.1"
+jsch = "0.2.20"
 coroutines = "1.9.0"
 lifecycle = "2.8.7"
 navigation = "2.8.5"
@@ -28,6 +29,7 @@ compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 
@@ -55,6 +57,9 @@ coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-
 
 # Logging
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
+
+# SSH
+jsch = { group = "com.github.mwiede", name = "jsch", version.ref = "jsch" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }

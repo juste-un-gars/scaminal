@@ -69,13 +69,29 @@ class HostRepository @Inject constructor(
         hostDao.deleteNonFavorites()
         Timber.d("Non-favorite hosts cleared")
     }
+
+    /** Sauvegarde les credentials SSH chiffrés pour un hôte. */
+    suspend fun saveCredentials(ip: String, username: String, encryptedPassword: ByteArray) {
+        val entity = hostDao.getByIp(ip) ?: return
+        hostDao.update(entity.copy(username = username, encryptedPassword = encryptedPassword))
+        Timber.d("Credentials saved for %s", ip)
+    }
+
+    /** Récupère les credentials SSH d'un hôte (username + blob chiffré). */
+    suspend fun getCredentials(ip: String): Pair<String, ByteArray>? {
+        val entity = hostDao.getByIp(ip) ?: return null
+        val username = entity.username ?: return null
+        val password = entity.encryptedPassword ?: return null
+        return Pair(username, password)
+    }
 }
 
 /** Convertit un [HostEntity] Room en modèle réseau [Host]. */
 private fun HostEntity.toHost(): Host = Host(
     ipAddress = ipAddress,
     hostname = hostname,
-    isReachable = true
+    isReachable = true,
+    isFavorite = isFavorite
 )
 
 /** Convertit un modèle réseau [Host] en [HostEntity] Room. */

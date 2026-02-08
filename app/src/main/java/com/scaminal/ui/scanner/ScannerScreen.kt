@@ -44,7 +44,10 @@ import com.scaminal.network.model.Host
 import com.scaminal.network.model.ScanState
 
 @Composable
-fun ScannerScreen(viewModel: ScannerViewModel = hiltViewModel()) {
+fun ScannerScreen(
+    onNavigateToTerminal: (String) -> Unit = {},
+    viewModel: ScannerViewModel = hiltViewModel()
+) {
     val scanState by viewModel.scanState.collectAsState()
     val portScanState by viewModel.portScanState.collectAsState()
     val hosts by viewModel.hosts.collectAsState()
@@ -75,7 +78,8 @@ fun ScannerScreen(viewModel: ScannerViewModel = hiltViewModel()) {
             else -> HostList(
                 hosts = hosts,
                 onLongPress = viewModel::startPortScanSingle,
-                onToggleFavorite = viewModel::toggleFavorite
+                onToggleFavorite = viewModel::toggleFavorite,
+                onTap = { ip -> onNavigateToTerminal(ip) }
             )
         }
     }
@@ -155,14 +159,16 @@ private fun ErrorState(message: String) {
 private fun HostList(
     hosts: List<Host>,
     onLongPress: (String) -> Unit,
-    onToggleFavorite: (String) -> Unit
+    onToggleFavorite: (String) -> Unit,
+    onTap: (String) -> Unit
 ) {
     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         items(hosts, key = { it.ipAddress }) { host ->
             HostItem(
                 host = host,
                 onLongPress = { onLongPress(host.ipAddress) },
-                onToggleFavorite = { onToggleFavorite(host.ipAddress) }
+                onToggleFavorite = { onToggleFavorite(host.ipAddress) },
+                onTap = { onTap(host.ipAddress) }
             )
         }
     }
@@ -173,12 +179,13 @@ private fun HostList(
 private fun HostItem(
     host: Host,
     onLongPress: () -> Unit,
-    onToggleFavorite: () -> Unit
+    onToggleFavorite: () -> Unit,
+    onTap: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .combinedClickable(onLongClick = onLongPress, onClick = {})
+            .combinedClickable(onLongClick = onLongPress, onClick = onTap)
     ) {
         Row(
             modifier = Modifier
@@ -218,9 +225,9 @@ private fun HostItem(
 
             IconButton(onClick = onToggleFavorite) {
                 Icon(
-                    imageVector = Icons.Default.FavoriteBorder,
+                    imageVector = if (host.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                     contentDescription = "Favori",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = if (host.isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

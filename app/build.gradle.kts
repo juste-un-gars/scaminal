@@ -25,6 +25,7 @@ android {
             buildConfigField("Boolean", "ENABLE_LOGGING", "true")
             buildConfigField("int", "DEFAULT_SCAN_TIMEOUT", "200")
             buildConfigField("int", "DEFAULT_PORT_TIMEOUT", "200")
+            buildConfigField("int", "DEFAULT_SSH_TIMEOUT", "10000")
         }
         release {
             isMinifyEnabled = true
@@ -36,6 +37,7 @@ android {
             buildConfigField("Boolean", "ENABLE_LOGGING", "false")
             buildConfigField("int", "DEFAULT_SCAN_TIMEOUT", "200")
             buildConfigField("int", "DEFAULT_PORT_TIMEOUT", "200")
+            buildConfigField("int", "DEFAULT_SSH_TIMEOUT", "10000")
         }
     }
 
@@ -52,6 +54,12 @@ android {
         compose = true
         buildConfig = true
     }
+
+    packaging {
+        resources {
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+        }
+    }
 }
 
 dependencies {
@@ -65,6 +73,7 @@ dependencies {
     implementation(libs.compose.ui.graphics)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons.extended)
     debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.compose.ui.test.manifest)
 
@@ -91,6 +100,9 @@ dependencies {
 
     // Logging
     implementation(libs.timber)
+
+    // SSH
+    implementation(libs.jsch)
 
     // Testing
     testImplementation(libs.junit)

@@ -12,11 +12,13 @@ package com.scaminal.network.model
  * @param isReachable true si l'hôte a répondu au ping
  * @param openPorts Liste des ports ouverts détectés
  * @param responseTime Temps de réponse en millisecondes (-1 si non mesuré)
+ * @param isFavorite true si l'hôte est marqué comme favori
  */
 data class Host(
     val ipAddress: String,
     val hostname: String? = null,
     val isReachable: Boolean = false,
     val openPorts: List<Int> = emptyList(),
-    val responseTime: Long = -1L
+    val responseTime: Long = -1L,
+    val isFavorite: Boolean = false
 )

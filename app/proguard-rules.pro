@@ -7,3 +7,7 @@
 # Hilt
 -keep class dagger.hilt.** { *; }
 -keep class * extends dagger.hilt.android.internal.managers.ViewComponentManager { *; }
+
+# JSch SSH
+-keep class com.jcraft.jsch.** { *; }
+-dontwarn com.jcraft.jsch.**
