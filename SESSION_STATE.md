@@ -2,7 +2,7 @@
 
 ## Phase actuelle
 
-**Phase 3 : SSH + Raccourcis** — Terminée
+**Phase 4 : Release v1.0.0** — Terminée
 
 ## Progression
 
@@ -13,7 +13,7 @@
 | 2 : Core réseau | Terminée |
 | 3 : SSH | Terminée |
 | 3b : Raccourcis commandes | Terminée |
-| 4 : Pré-release | En attente |
+| 4 : Release v1.0.0 | Terminée |
 
 ## Sessions
 
@@ -23,6 +23,25 @@
 | 001 | Fondation | Terminée |
 | 002 | Core réseau | Terminée |
 | 003 | SSH + Raccourcis | Terminée |
+| 004 | Bugfixes + Release v1.0.0 | Terminée |
+
+## Phase 4 — Détail (Session 004)
+
+### Bugfixes
+1. **Fix credentials password non restauré** — `loadSavedCredentials()` ne déchiffrait pas le password ; ajout `_savedPassword` StateFlow + decrypt dans init + pré-remplissage LoginDialog
+2. **Fix déconnexion SSH bouton retour** — ajout `BackHandler` dans TerminalScreen + `SshClient.disconnectSync()` pour nettoyage synchrone + fix `onCleared()` qui n'appelait pas disconnect
+3. Suppression du stub `getSavedPassword()` (retournait toujours null)
+
+### Release signing
+1. Génération keystore `scaminal-release.jks` (RSA 2048, validité 10000 jours)
+2. `keystore.properties` (gitignored) pour les credentials
+3. `build.gradle.kts` : signingConfigs release, import Properties, version 1.0.0
+4. Build release signé avec R8/ProGuard — APK 1.8 MB
+
+### GitHub Release
+- Tag `v1.0.0` poussé sur `origin/main`
+- Release à créer manuellement sur github.com/juste-un-gars/scaminal/releases/new
+- APK : `scaminal-v1.0.0-release.apk`
 
 ## Phase 3 — Détail des itérations
 
@@ -48,39 +67,21 @@
 3. Navigation 3ème onglet "Raccourcis" dans bottom nav
 4. Barre de chips raccourcis dans TerminalScreen (tap = remplit, + = ajouter)
 
-## Fichiers créés/modifiés (Phase 3)
+## Fichiers modifiés (Session 004)
 
-### Nouveaux fichiers
-- `security/KeystoreManager.kt` — Chiffrement AES-256-GCM via Android Keystore
-- `ssh/SshClient.kt` — Client SSH JSch
-- `ssh/TerminalStream.kt` — Flux bidirectionnel SSH
-- `ssh/AnsiParser.kt` — Parser ANSI escape codes
-- `ui/terminal/TerminalViewModel.kt` — ViewModel terminal SSH
-- `ui/terminal/TerminalScreen.kt` — Écran terminal complet
-- `data/entity/CommandShortcut.kt` — Entité raccourcis
-- `data/dao/CommandShortcutDao.kt` — DAO raccourcis
-- `data/repository/ShortcutRepository.kt` — Repository + défauts
-- `ui/shortcuts/ShortcutsViewModel.kt` — ViewModel raccourcis
-- `ui/shortcuts/ShortcutsScreen.kt` — Écran gestion raccourcis
+- `app/build.gradle.kts` — signingConfigs release, import Properties, versionName 1.0.0
+- `ssh/SshClient.kt` — ajout `disconnectSync()` non-suspend
+- `ui/terminal/TerminalViewModel.kt` — fix `_savedPassword`, fix `onCleared()`, simplification `connectWithSaved()`
+- `ui/terminal/TerminalScreen.kt` — `BackHandler`, `initialPassword` dans LoginDialog, `LaunchedEffect(initialPassword)`
 
-### Fichiers modifiés
-- `gradle/libs.versions.toml` — JSch 0.2.20, material-icons-extended
-- `app/build.gradle.kts` — Dépendances JSch + icons, BuildConfig SSH_TIMEOUT, packaging exclusion
-- `app/proguard-rules.pro` — Keep JSch classes
-- `data/AppDatabase.kt` — Version 2, migration, CommandShortcutDao
-- `data/repository/HostRepository.kt` — saveCredentials/getCredentials
-- `di/DatabaseModule.kt` — Migration + provider CommandShortcutDao
-- `ScaminalApplication.kt` — ensureDefaults() au démarrage
-- `MainActivity.kt` — Route terminal, onglet raccourcis, padding par route
-- `ui/scanner/ScannerScreen.kt` — onNavigateToTerminal, tap hôte
-- `ui/favorites/FavoritesScreen.kt` — onNavigateToTerminal, tap favori
-- `AndroidManifest.xml` — windowSoftInputMode=adjustNothing
+## Fichiers créés (Session 004)
+
+- `scaminal-release.jks` — Keystore de signature (gitignored)
+- `keystore.properties` — Credentials keystore (gitignored)
 
 ## Handoff
 
-Phase 3 complète. Prochaine étape : Phase 4 (Pré-release)
-- Audit sécurité complet (credentials, Keystore, permissions)
-- Audit dépendances (./gradlew dependencyUpdates)
-- ProGuard/R8 activé et testé (build release)
-- Test sur appareil physique
-- Validation finale
+Release v1.0.0 prête. Prochaines étapes possibles :
+- Audit sécurité complet (OWASP, credentials, permissions)
+- Tests unitaires / instrumentés
+- Nouvelles fonctionnalités (SFTP, multi-sessions, thèmes)
