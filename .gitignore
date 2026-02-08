@@ -1,0 +1,80 @@
+# === ANDROID / GRADLE ===
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build/
+/app/build/
+/captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+output-metadata.json
+
+# === SECRETS & CREDENTIALS ===
+*.jks
+*.keystore
+keystore.properties
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# === LOGS ===
+logs/
+*.log
+
+# === DATABASES ===
+*.db
+*.sqlite
+*.sqlite3
+
+# === IDE ===
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+
+# VSCode
+.vscode/
+
+# === OS FILES ===
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*~
+
+# === TEMPORARY & CACHE ===
+tmp/
+temp/
+*.tmp
+*.bak
+*.cache
+.cache/
+
+# === TESTING ===
+coverage/
+*.lcov
+
+# === KOTLIN ===
+*.class
+out/
+
+# === MISC ===
+*.orig
+*.rej
+model_CLAUDE.md
