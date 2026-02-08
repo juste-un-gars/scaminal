@@ -2,97 +2,65 @@
 
 ## Meta
 
-- **Date :** -
-- **Objectif :** Créer la structure du projet Android et poser les bases (Gradle, Timber, Room, WifiHelper)
-- **Statut :** En attente
-
-## Module actuel
-
-**En attente de démarrage**
-
-## Checklist des modules
-
-### Module 1 : Structure projet + Gradle
-- [ ] Créer le projet Android (Empty Compose Activity, package `com.scaminal`)
-- [ ] Configurer `build.gradle.kts` (app) avec les dépendances :
-  - Jetpack Compose (BOM)
-  - Room (runtime, compiler, ktx)
-  - Timber
-  - Kotlin Coroutines (core, android)
-  - Hilt ou Koin (à décider)
-- [ ] Configurer les `buildConfigField` (ENABLE_LOGGING, DEFAULT_SCAN_TIMEOUT)
-- [ ] Créer l'arborescence des packages (`ui/`, `network/`, `ssh/`, `data/`, `security/`, `di/`)
-- [ ] Vérifier que le projet compile et se lance sur émulateur
-- [ ] **Validation utilisateur**
-
-### Module 2 : Logging (Timber)
-- [ ] Créer la classe `ScaminalApp : Application()`
-- [ ] Initialiser Timber dans `onCreate()` (DebugTree en debug)
-- [ ] Déclarer dans `AndroidManifest.xml`
-- [ ] Tester avec un `Timber.d("App started")` au lancement
-- [ ] **Validation utilisateur**
-
-### Module 3 : Room Database + entités
-- [ ] Créer `HostEntity` (id, ip, hostname, port, label, createdAt)
-- [ ] Créer `HostDao` (insert, getAll, getById, delete, update)
-- [ ] Créer `AppDatabase` (Room database, version 1)
-- [ ] Créer `HostRepository`
-- [ ] Tester avec un insert/query en debug
-- [ ] **Validation utilisateur**
-
-### Module 4 : WifiHelper
-- [ ] Créer `WifiHelper` (détection Wi-Fi, IP locale, masque sous-réseau)
-- [ ] Utiliser `ConnectivityManager` et `WifiManager`
-- [ ] Retourner le préfixe du sous-réseau (ex: "192.168.1")
-- [ ] Gérer le cas "pas de Wi-Fi" proprement
-- [ ] Tester sur émulateur / appareil
-- [ ] **Validation utilisateur**
-
-### Module 5 : Revue sécurité Phase 1
-- [ ] Aucun credential hardcodé
-- [ ] Permissions minimales dans le Manifest
-- [ ] Timber désactivé en release
-- [ ] local.properties et keystore.properties dans .gitignore
-- [ ] **Validation utilisateur**
+- **Date :** 2026-02-08
+- **Objectif :** Créer la structure du projet Android et poser les bases
+- **Statut :** Terminée
 
 ## Modules complétés
 
 | Module | Validé | Date |
 |--------|--------|------|
-| - | - | - |
-
-## Prochains modules (Phase 2)
-
-1. NetworkScanner (scan IP parallèle)
-2. PortScanner (scan ports avec timeout)
-3. ScannerScreen + ScannerViewModel
-4. FavoritesScreen + persistance Room
+| 1. Structure projet + Gradle | Oui | 2026-02-08 |
+| 2. ScaminalApplication + MainActivity | Oui | 2026-02-08 |
+| 3. Room Database + HostEntity + HostDao | Oui | 2026-02-08 |
+| 4. WifiHelper | Oui | 2026-02-08 |
 
 ## Décisions techniques
 
-- **DI :** À décider (Hilt vs Koin)
-- **Min SDK :** 26 (Android 8.0, couvre ~95% des appareils)
+- **DI :** Hilt
+- **Gradle :** 8.14.1, AGP 8.7.3, Kotlin 2.0.21, Compose BOM 2024.12.01
+- **Flux scan :** Scan IP (bouton) → Scan Ports tous hôtes (bouton configurable : courants/tous/personnalisé) → Appui long = scan ports 1 hôte
+
+## Fichiers créés
+
+```
+settings.gradle.kts
+build.gradle.kts
+gradle.properties
+local.properties
+gradle/libs.versions.toml
+gradle/wrapper/gradle-wrapper.properties + jar
+gradlew / gradlew.bat
+app/build.gradle.kts
+app/proguard-rules.pro
+app/.gitignore
+app/src/main/AndroidManifest.xml
+app/src/main/res/values/strings.xml
+app/src/main/res/values/themes.xml
+app/src/main/res/drawable/ic_launcher_background.xml
+app/src/main/res/drawable/ic_launcher_foreground.xml
+app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+app/src/main/java/com/scaminal/ScaminalApplication.kt
+app/src/main/java/com/scaminal/MainActivity.kt
+app/src/main/java/com/scaminal/ui/theme/Theme.kt
+app/src/main/java/com/scaminal/data/entity/HostEntity.kt
+app/src/main/java/com/scaminal/data/dao/HostDao.kt
+app/src/main/java/com/scaminal/data/AppDatabase.kt
+app/src/main/java/com/scaminal/di/DatabaseModule.kt
+app/src/main/java/com/scaminal/network/WifiHelper.kt
+```
 
 ## Issues & Solutions
 
-_Aucune pour l'instant_
-
-## Fichiers à créer
-
-```
-app/src/main/java/com/scaminal/
-├── ScaminalApp.kt
-├── data/
-│   ├── AppDatabase.kt
-│   ├── dao/HostDao.kt
-│   ├── entity/HostEntity.kt
-│   └── repository/HostRepository.kt
-├── network/
-│   └── WifiHelper.kt
-└── di/
-    └── AppModule.kt
-```
+| Problème | Solution |
+|----------|----------|
+| `buildConfigField("Int", ...)` → erreur Java | Utiliser `"int"` (minuscule) |
+| `dependencyResolution {}` dans settings.gradle.kts | C'est `dependencyResolutionManagement {}` |
+| `resource mipmap/ic_launcher not found` | Créer adaptive icon en `mipmap-anydpi-v26` + drawables vectoriels |
+| Hilt deprecated API warning | Normal (Hilt_ScaminalApplication.java), ne bloque pas |
 
 ## Handoff
 
-_À remplir en fin de session_
+Phase 1 complète. Build OK. App se lance sur appareil physique.
+Phase 2 : NetworkScanner, PortScanner, ScannerScreen + ScannerViewModel, FavoritesScreen.
