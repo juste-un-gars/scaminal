@@ -79,6 +79,11 @@ class SshClient @Inject constructor() {
 
     /** Ferme le channel et la session SSH. */
     suspend fun disconnect() = withContext(Dispatchers.IO) {
+        disconnectSync()
+    }
+
+    /** Déconnexion synchrone pour le nettoyage (onCleared, etc.). */
+    fun disconnectSync() {
         try {
             channel?.disconnect()
             session?.disconnect()

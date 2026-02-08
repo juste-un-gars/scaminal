@@ -4,6 +4,7 @@
  */
 package com.scaminal.ui.terminal
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -72,11 +73,18 @@ fun TerminalScreen(
     val connectionState by viewModel.connectionState.collectAsState()
     val outputSpans by viewModel.outputSpans.collectAsState()
     val savedUsername by viewModel.savedUsername.collectAsState()
+    val savedPassword by viewModel.savedPassword.collectAsState()
     val hasSavedCredentials by viewModel.hasSavedCredentials.collectAsState()
     val shortcuts by viewModel.shortcuts.collectAsState()
 
     var showLoginDialog by remember { mutableStateOf(true) }
     var commandText by remember { mutableStateOf("") }
+
+    // Bouton retour système = même action que la flèche
+    BackHandler {
+        viewModel.disconnect()
+        onNavigateBack()
+    }
 
     // Masquer le dialog une fois connecté
     LaunchedEffect(connectionState) {
@@ -147,6 +155,7 @@ fun TerminalScreen(
     if (showLoginDialog && connectionState !is SshConnectionState.Connected) {
         LoginDialog(
             initialUsername = savedUsername,
+            initialPassword = savedPassword,
             hasSavedCredentials = hasSavedCredentials,
             isConnecting = connectionState is SshConnectionState.Connecting,
             error = (connectionState as? SshConnectionState.Error)?.message,
@@ -386,6 +395,7 @@ private fun AddShortcutDialog(
 @Composable
 private fun LoginDialog(
     initialUsername: String,
+    initialPassword: String,
     hasSavedCredentials: Boolean,
     isConnecting: Boolean,
     error: String?,
@@ -394,13 +404,16 @@ private fun LoginDialog(
     onDismiss: () -> Unit
 ) {
     var username by remember { mutableStateOf(initialUsername) }
-    var password by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf(initialPassword) }
     var passwordVisible by remember { mutableStateOf(false) }
     var saveCredentials by remember { mutableStateOf(false) }
 
-    // Mettre à jour le username quand les credentials chargent
+    // Mettre à jour les champs quand les credentials chargent
     LaunchedEffect(initialUsername) {
         if (initialUsername.isNotEmpty()) username = initialUsername
+    }
+    LaunchedEffect(initialPassword) {
+        if (initialPassword.isNotEmpty()) password = initialPassword
     }
 
     AlertDialog(

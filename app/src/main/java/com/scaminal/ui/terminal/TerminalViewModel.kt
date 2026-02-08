@@ -47,6 +47,9 @@ class TerminalViewModel @Inject constructor(
     private val _savedUsername = MutableStateFlow("")
     val savedUsername: StateFlow<String> = _savedUsername.asStateFlow()
 
+    private val _savedPassword = MutableStateFlow("")
+    val savedPassword: StateFlow<String> = _savedPassword.asStateFlow()
+
     private val _hasSavedCredentials = MutableStateFlow(false)
     val hasSavedCredentials: StateFlow<Boolean> = _hasSavedCredentials.asStateFlow()
 
@@ -66,6 +69,11 @@ class TerminalViewModel @Inject constructor(
             val credentials = hostRepository.getCredentials(hostIp)
             if (credentials != null) {
                 _savedUsername.value = credentials.first
+                try {
+                    _savedPassword.value = keystoreManager.decrypt(credentials.second)
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to decrypt saved password for %s", hostIp)
+                }
                 _hasSavedCredentials.value = true
                 Timber.d("Saved credentials found for %s", hostIp)
             }
@@ -103,25 +111,12 @@ class TerminalViewModel @Inject constructor(
         }
     }
 
-    /** Déchiffre le mot de passe sauvegardé pour auto-connexion. */
-    fun getSavedPassword(): String? {
-        val credentials = _hasSavedCredentials.value
-        if (!credentials) return null
-        return try {
-            // Load synchronously from cache — credentials already loaded in init
-            null // Will be loaded via connect flow
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to decrypt saved password")
-            null
-        }
-    }
-
-    /** Connecte avec les credentials sauvegardés. */
+    /** Connecte avec les credentials sauvegardés (déjà déchiffrés en mémoire). */
     fun connectWithSaved() {
-        viewModelScope.launch {
-            val credentials = hostRepository.getCredentials(hostIp) ?: return@launch
-            val password = keystoreManager.decrypt(credentials.second)
-            connect(credentials.first, password, false)
+        val username = _savedUsername.value
+        val password = _savedPassword.value
+        if (username.isNotBlank() && password.isNotBlank()) {
+            connect(username, password, false)
         }
     }
 
@@ -149,7 +144,6 @@ class TerminalViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         terminalStream.detach()
-        // disconnect is suspend, launch in global scope won't work well
-        // SshClient is singleton, will be cleaned up on next connect or app close
+        sshClient.disconnectSync()
     }
 }
