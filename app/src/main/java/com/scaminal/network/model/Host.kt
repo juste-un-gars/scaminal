@@ -20,5 +20,6 @@ data class Host(
     val isReachable: Boolean = false,
     val openPorts: List<Int> = emptyList(),
     val responseTime: Long = -1L,
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val isPortScanned: Boolean = false
 )

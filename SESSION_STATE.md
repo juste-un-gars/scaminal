@@ -2,7 +2,7 @@
 
 ## Phase actuelle
 
-**Phase 4 : Release v1.0.0** — Terminée
+**Phase 5 : Release v1.1.0** — Terminée
 
 ## Progression
 
@@ -14,6 +14,7 @@
 | 3 : SSH | Terminée |
 | 3b : Raccourcis commandes | Terminée |
 | 4 : Release v1.0.0 | Terminée |
+| 5 : Release v1.1.0 | Terminée |
 
 ## Sessions
 
@@ -24,64 +25,76 @@
 | 002 | Core réseau | Terminée |
 | 003 | SSH + Raccourcis | Terminée |
 | 004 | Bugfixes + Release v1.0.0 | Terminée |
+| 005 | Scanner amélioré + Release v1.1.0 | Terminée |
 
-## Phase 4 — Détail (Session 004)
+## Phase 5 — Détail (Session 005)
 
-### Bugfixes
-1. **Fix credentials password non restauré** — `loadSavedCredentials()` ne déchiffrait pas le password ; ajout `_savedPassword` StateFlow + decrypt dans init + pré-remplissage LoginDialog
-2. **Fix déconnexion SSH bouton retour** — ajout `BackHandler` dans TerminalScreen + `SshClient.disconnectSync()` pour nettoyage synchrone + fix `onCleared()` qui n'appelait pas disconnect
-3. Suppression du stub `getSavedPassword()` (retournait toujours null)
+### Subnet et range IP configurables
+- Le scan IP n'est plus figé sur le /24 auto-détecté
+- Champ texte "Subnet" éditable (pré-rempli depuis le réseau actif, modifiable si VPN)
+- Champs "Début" et "Fin" pour restreindre le range (défaut 1-254)
+- `NetworkScanner.scanSubnet()` accepte `subnetOverride`, `startHost`, `endHost`
 
-### Release signing
-1. Génération keystore `scaminal-release.jks` (RSA 2048, validité 10000 jours)
-2. `keystore.properties` (gitignored) pour les credentials
-3. `build.gradle.kts` : signingConfigs release, import Properties, version 1.0.0
-4. Build release signé avec R8/ProGuard — APK 1.8 MB
+### Interaction hôtes repensée
+- **Tap** sur un hôte → dialog de détails (IP, hostname, ping, ports) au lieu de forcer SSH
+- **Long press** → scan complet des 65535 ports (au lieu des 10 ports communs)
+- Bouton "Connexion SSH" dans le dialog uniquement si port 22 détecté ouvert
+- Bouton "Scanner ports" dans le dialog si pas encore scanné
 
-### GitHub Release
-- Tag `v1.0.0` poussé sur `origin/main`
-- Release à créer manuellement sur github.com/juste-un-gars/scaminal/releases/new
-- APK : `scaminal-v1.0.0-release.apk`
+### Scan complet de ports (1-65535)
+- Nouvelle méthode `PortScanner.scanAllPorts()` avec `Semaphore(500)` pour la concurrence
+- Scan par batches de 1000 ports avec progression en temps réel
+- Barre de progression visible pendant le scan
+- Résultat "Aucun port ouvert" affiché quand le scan est terminé avec 0 résultats
 
-## Phase 3 — Détail des itérations
+### Ports actionnables
+- Ports HTTP (80, 8080, 3000, etc.) → ouvrent le navigateur
+- Ports HTTPS (443, 8443, etc.) → ouvrent le navigateur en HTTPS
+- Port 22/2222 → connexion SSH (terminal intégré)
+- Autres ports → copie `ip:port` dans le presse-papier + toast
 
-### SSH (8 itérations)
-1. Dépendance JSch 0.2.20 + KeystoreManager AES-GCM
-2. SshClient (sealed class SshConnectionState, connect/disconnect, PTY xterm-256color)
-3. TerminalStream (attach/write/detach, Flow<String>)
-4. AnsiParser (machine à états NORMAL→ESCAPE→CSI, TerminalSpan, toAnnotatedString)
-5. HostRepository credential methods (saveCredentials, getCredentials)
-6. TerminalViewModel (injection SSH + credentials + stream)
-7. TerminalScreen (LoginDialog avec oeil mot de passe, terminal coloré, input bar)
-8. Navigation wiring (route terminal/{hostIp}, tap hôte → terminal)
+### Base de ports connus étendue
+- `PORT_NAMES` passe de 10 à ~130 ports référencés (IANA + services courants)
+- Inclut NetBIOS (137-139), SMB (445), Redis (6379), MongoDB (27017), Docker (2375), etc.
 
-### Améliorations UX terminal
-- Fix clavier : `adjustNothing` + `imePadding()` (pas de décalage écran)
-- Fix double padding : `innerPadding` par route (pas sur NavHost global)
-- Icone oeil visibilité mot de passe dans LoginDialog
-- Dépendance `material-icons-extended`
+### Champ `isPortScanned` dans Host
+- Nouveau champ pour distinguer "pas encore scanné" de "0 ports ouverts"
+- Affiché dans les cartes hôtes et dans le dialog de détails
 
-### Raccourcis commandes (4 itérations)
-1. Entity CommandShortcut + DAO + Migration DB v1→v2 + ShortcutRepository + 8 commandes par défaut
-2. ShortcutsViewModel + ShortcutsScreen (CRUD complet)
-3. Navigation 3ème onglet "Raccourcis" dans bottom nav
-4. Barre de chips raccourcis dans TerminalScreen (tap = remplit, + = ajouter)
+## Fichiers modifiés (Session 005)
 
-## Fichiers modifiés (Session 004)
-
-- `app/build.gradle.kts` — signingConfigs release, import Properties, versionName 1.0.0
-- `ssh/SshClient.kt` — ajout `disconnectSync()` non-suspend
-- `ui/terminal/TerminalViewModel.kt` — fix `_savedPassword`, fix `onCleared()`, simplification `connectWithSaved()`
-- `ui/terminal/TerminalScreen.kt` — `BackHandler`, `initialPassword` dans LoginDialog, `LaunchedEffect(initialPassword)`
-
-## Fichiers créés (Session 004)
-
-- `scaminal-release.jks` — Keystore de signature (gitignored)
-- `keystore.properties` — Credentials keystore (gitignored)
+- `app/build.gradle.kts` — versionCode 2, versionName 1.1.0
+- `network/NetworkScanner.kt` — params `subnetOverride`, `startHost`, `endHost`
+- `network/PortScanner.kt` — `scanAllPorts()`, `PORT_NAMES` étendu (~130 ports)
+- `network/model/Host.kt` — ajout `isPortScanned: Boolean`
+- `ui/scanner/ScannerViewModel.kt` — states subnet/range, scan complet 65535 ports
+- `ui/scanner/ScannerScreen.kt` — dialog détails hôte, ports cliquables, range selector
+- `ARCHITECTURE.md` — mise à jour concurrence (semaphore, range configurable)
 
 ## Handoff
 
-Release v1.0.0 prête. Prochaines étapes possibles :
+Release v1.1.0 prête. Prochaines étapes possibles :
 - Audit sécurité complet (OWASP, credentials, permissions)
 - Tests unitaires / instrumentés
 - Nouvelles fonctionnalités (SFTP, multi-sessions, thèmes)
+- Configuration des ports à scanner (liste personnalisable)
+
+## Historique des phases précédentes
+
+### Phase 4 (Session 004)
+- Fix credentials password non restauré
+- Fix déconnexion SSH bouton retour
+- Release signing (keystore, ProGuard, APK 1.8 MB)
+- Tag v1.0.0 GitHub
+
+### Phase 3 (Session 003)
+- SSH : JSch 0.2.20, SshClient, TerminalStream, AnsiParser, TerminalScreen
+- UX terminal : edge-to-edge, clavier, padding
+- Raccourcis commandes : CRUD, onglet, barre chips terminal
+- DB migration v1→v2
+
+### Phase 2 (Session 002)
+- NetworkScanner, PortScanner, ScannerScreen, FavoritesScreen, Navigation
+
+### Phase 1 (Session 001)
+- Gradle, Hilt, Timber, Room, WifiHelper

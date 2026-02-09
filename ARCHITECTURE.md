@@ -98,7 +98,8 @@ Les favoris et l'historique de commandes passent par des Repository qui abstraie
 
 - **Dispatchers.IO** pour toutes les opérations réseau et SSH
 - **Dispatchers.Main** pour les mises à jour UI
-- Le scan IP utilise `async/awaitAll` pour paralléliser les 254 requêtes `isReachable`
+- Le scan IP utilise `async/awaitAll` pour paralléliser les requêtes `isReachable` (range configurable)
+- Le scan de ports complet (1-65535) utilise un `Semaphore(500)` pour limiter la concurrence
 - Les timeouts Socket sont à ~200ms pour éviter les blocages
 
 ## Sécurité

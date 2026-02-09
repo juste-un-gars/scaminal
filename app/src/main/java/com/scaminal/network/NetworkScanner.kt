@@ -30,20 +30,28 @@ class NetworkScanner @Inject constructor(
      * @return Flow émettant chaque [Host] joignable
      */
     fun scanSubnet(
+        subnetOverride: String? = null,
+        startHost: Int = 1,
+        endHost: Int = 254,
         timeout: Int = BuildConfig.DEFAULT_SCAN_TIMEOUT
     ): Flow<Host> = flow {
-        val networkInfo = wifiHelper.getNetworkInfo()
-        if (networkInfo == null) {
-            Timber.w("Cannot scan: no network info available")
-            return@flow
+        val subnet = if (subnetOverride != null) {
+            subnetOverride
+        } else {
+            val networkInfo = wifiHelper.getNetworkInfo()
+            if (networkInfo == null) {
+                Timber.w("Cannot scan: no network info available")
+                return@flow
+            }
+            networkInfo.subnetPrefix
         }
 
-        val subnet = networkInfo.subnetPrefix
-        Timber.d("Starting subnet scan: %s.0/24 (timeout=%dms)", subnet, timeout)
+        val range = startHost.coerceIn(1, 254)..endHost.coerceIn(1, 254)
+        Timber.d("Starting subnet scan: %s.%d-%d (timeout=%dms)", subnet, range.first, range.last, timeout)
         val startTime = System.currentTimeMillis()
 
         val results = kotlinx.coroutines.coroutineScope {
-            (1..254).map { i ->
+            range.map { i ->
                 async {
                     pingHost("$subnet.$i", timeout)
                 }
